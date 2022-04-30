@@ -23,6 +23,7 @@ async function createConnection() {
     return client;
 }
 const client =await createConnection();
+app.use(express.json());
 app.get('/', function (req, res) {
   res.send('Hello sanjaye')
 })
@@ -30,9 +31,22 @@ app.get('/', function (req, res) {
 app.listen(3000)
 
 
-app.get ("/movies", function (request, response) {
-    response.send(movies);
+app.get ("/movies", async  function (request, response) {
+    let filter =request.query;
+
+    if (filter.rating) {
+        filter.rating=+filter.rating;
+    }
+     
+
+    const allMovies = await client.db("B29WE").collection("movies").find({}).toArray();
+    response.send(allMovies);
 })
+
+// cursor-pagination -20 results -20 results
+
+// const allMovies = await client.db("B29WE").collection("movies").find({}).toArray();
+// response.send(allMovies);
 
 
 app.get("/movies/:id", async function (request, response) {
@@ -53,4 +67,25 @@ const result =  await client.db("B29WE").collection("movies").insertMany(newMovi
 
 
     response.send(result);
+});
+
+
+app.delete("/movies/:id", async function (request, response)  {
+    const {id} = request.params;
+
+    const movie = await client.db("B29WE").collection("movies").deleteOne({id: id});
+
+    response.send(movie);
+});
+
+
+
+app.put("/movies/:id", async function (request, response)  {
+    const {id} = request.params;
+    const updateData = request.body;
+    console.log(id,updateData);
+
+    const movie = await client.db("B29WE").collection("movies").updateOne({id: id},{$set: updateData});
+
+    response.send(movie);
 });
